@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Developing Data Products Presentation</title>
+  <meta charset="utf-8">
+  <meta name="description" content="Developing Data Products Presentation">
+  <meta name="author" content="Mike">
+  <meta name="generator" content="slidify" />
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta http-equiv="X-UA-Compatible" content="chrome=1">
+  <link rel="stylesheet" href="libraries/frameworks/io2012/css/default.css" media="all" >
+  <link rel="stylesheet" href="libraries/frameworks/io2012/css/phone.css" 
+    media="only screen and (max-device-width: 480px)" >
+  <link rel="stylesheet" href="libraries/frameworks/io2012/css/slidify.css" >
+  <link rel="stylesheet" href="libraries/highlighters/highlight.js/css/tomorrow.css" />
+  <base target="_blank"> <!-- This amazingness opens all links in a new tab. -->  
+  
+  <!-- Grab CDN jQuery, fall back to local if offline -->
+  <script src="http://ajax.aspnetcdn.com/ajax/jQuery/jquery-1.7.min.js"></script>
+  <script>window.jQuery || document.write('<script src="libraries/widgets/quiz/js/jquery.js"><\/script>')</script> 
+  <script data-main="libraries/frameworks/io2012/js/slides" 
+    src="libraries/frameworks/io2012/js/require-1.0.8.min.js">
+  </script>
+  
+  
+
+</head>
+<body style="opacity: 0">
+  <slides class="layout-widescreen">
+    
+    <!-- LOGO SLIDE -->
+        <slide class="title-slide segue nobackground">
+  <hgroup class="auto-fadein">
+    <h1>Developing Data Products Presentation</h1>
+    <h2>Odds of Admission to UCB</h2>
+    <p>Mike<br/></p>
+  </hgroup>
+  <article></article>  
+</slide>
+    
+
+    <!-- SLIDES -->
+    <slide class="" id="slide-1" style="background:;">
+  <hgroup>
+    <h2>Introduction</h2>
+  </hgroup>
+  <article data-timings="">
+    <p>My Shiny App calculates the chances of admission to UCB&#39;s 6 largest graduate programs based on the applicant&#39;s Gender and the Department they are applying to. It uses the historical data from the UCBAdmissions dataset in the R &quot;datasets&quot; package. The data is from the 1973 academic year. </p>
+
+<p>This presentation will show the methodology and code used to generate the predictions in the Shiny app.</p>
+
+<p>This link was a helpful resource in figuring out how to run the <code>glm()</code> function with the <code>cbind()</code> as the response.</p>
+
+<p><a href="http://www.isid.ac.in/%7Edeepayan/LM2010/quiz2sol.pdf">http://www.isid.ac.in/~deepayan/LM2010/quiz2sol.pdf</a></p>
+
+<p>And here is a link to the &quot;memisc&quot; package that saved a bunch of steps when I was trying to get the data into a workable form: </p>
+
+<p><a href="http://www.inside-r.org/packages/cran/memisc/docs/to.data.frame">http://www.inside-r.org/packages/cran/memisc/docs/to.data.frame</a></p>
+
+  </article>
+  <!-- Presenter Notes -->
+</slide>
+
+<slide class="class" id="id" style="background:;">
+  <hgroup>
+    <h2>Loading The Data</h2>
+  </hgroup>
+  <article data-timings="">
+    <p>First, let&#39;s load the packages and data required to do the analysis. </p>
+
+<pre><code class="r">library(memisc);data(&quot;UCBAdmissions&quot;)
+class(UCBAdmissions)
+</code></pre>
+
+<pre><code>## [1] &quot;table&quot;
+</code></pre>
+
+<p>The UCBAdmissions data set is a 3D array of class &quot;table&quot;. To perform the Generalized Linear Regression, we&#39;ll need to convert it to a data frame. The  <code>to.data.frame()</code> function in the &quot;memisc&quot; package let&#39;s us do just that. </p>
+
+  </article>
+  <!-- Presenter Notes -->
+</slide>
+
+<slide class="" id="slide-3" style="background:;">
+  <hgroup>
+    <h2>Prepping the Data</h2>
+  </hgroup>
+  <article data-timings="">
+    <p>Below, I use the <code>to.data.frame()</code> function to create the &quot;tidy&quot; data set I&#39;ll use to run the regression analysis. </p>
+
+<pre><code class="r">df &lt;- to.data.frame(UCBAdmissions)
+head(df,4)
+</code></pre>
+
+<pre><code>##   Gender Dept Admitted Rejected
+## 1   Male    A      512      313
+## 2 Female    A       89       19
+## 3   Male    B      353      207
+## 4 Female    B       17        8
+</code></pre>
+
+<pre><code class="r">dim(df)
+</code></pre>
+
+<pre><code>## [1] 12  4
+</code></pre>
+
+  </article>
+  <!-- Presenter Notes -->
+</slide>
+
+<slide class="" id="slide-4" style="background:;">
+  <hgroup>
+    <h2>The Model</h2>
+  </hgroup>
+  <article data-timings="">
+    <p>Due to the fact that our &quot;response&quot; is in 2 different columns, we need to  <code>cbind()</code> them together in the call to  <code>glm()</code>. </p>
+
+<pre><code class="r">glm1 &lt;- glm(cbind(Admitted,Rejected)~., data=df, family=binomial())
+
+summary(glm1)$coef
+</code></pre>
+
+<pre><code>##                 Estimate Std. Error     z value     Pr(&gt;|z|)
+## (Intercept)   0.58205140 0.06899260   8.4364326 3.271701e-17
+## GenderFemale  0.09987009 0.08084647   1.2353055 2.167168e-01
+## DeptB        -0.04339793 0.10983890  -0.3951053 6.927652e-01
+## DeptC        -1.26259802 0.10663289 -11.8406063 2.407065e-32
+## DeptD        -1.29460647 0.10582342 -12.2336476 2.054991e-34
+## DeptE        -1.73930574 0.12611350 -13.7915909 2.863743e-43
+## DeptF        -3.30648006 0.16998181 -19.4519642 2.804785e-84
+</code></pre>
+
+  </article>
+  <!-- Presenter Notes -->
+</slide>
+
+<slide class="" id="slide-5" style="background:;">
+  <hgroup>
+    <h2>Getting a Probability</h2>
+  </hgroup>
+  <article data-timings="">
+    <p>To make a prediction, we&#39;ll just need a dataframe with the new applicants Gender and Department. </p>
+
+<pre><code class="r">newdata &lt;- data.frame(Gender = &quot;Female&quot;, Dept = &quot;D&quot;)
+predict(glm1, newdata, type = &quot;response&quot;)
+</code></pre>
+
+<pre><code>##        1 
+## 0.351447
+</code></pre>
+
+<p>Using  <code>type = &quot;response&quot;</code> converts the output to a probability. </p>
+
+<p>The Shiny app uses two drop down menus to let the user input the Gender (&quot;Male&quot; or &quot;Female&quot;) and Dept variables (&quot;A&quot;-&quot;F&quot;). The <code>server.R</code> file then runs the exact same code as above to get the prediction for the specific combination of Gender and Dept. </p>
+
+  </article>
+  <!-- Presenter Notes -->
+</slide>
+
+    <slide class="backdrop"></slide>
+  </slides>
+  <div class="pagination pagination-small" id='io2012-ptoc' style="display:none;">
+    <ul>
+      <li>
+      <a href="#" target="_self" rel='tooltip' 
+        data-slide=1 title='Introduction'>
+         1
+      </a>
+    </li>
+    <li>
+      <a href="#" target="_self" rel='tooltip' 
+        data-slide=2 title='Loading The Data'>
+         2
+      </a>
+    </li>
+    <li>
+      <a href="#" target="_self" rel='tooltip' 
+        data-slide=3 title='Prepping the Data'>
+         3
+      </a>
+    </li>
+    <li>
+      <a href="#" target="_self" rel='tooltip' 
+        data-slide=4 title='The Model'>
+         4
+      </a>
+    </li>
+    <li>
+      <a href="#" target="_self" rel='tooltip' 
+        data-slide=5 title='Getting a Probability'>
+         5
+      </a>
+    </li>
+  </ul>
+  </div>  <!--[if IE]>
+    <script 
+      src="http://ajax.googleapis.com/ajax/libs/chrome-frame/1/CFInstall.min.js">  
+    </script>
+    <script>CFInstall.check({mode: 'overlay'});</script>
+  <![endif]-->
+</body>
+  <!-- Load Javascripts for Widgets -->
+  
+  <!-- LOAD HIGHLIGHTER JS FILES -->
+  <script src="libraries/highlighters/highlight.js/highlight.pack.js"></script>
+  <script>hljs.initHighlightingOnLoad();</script>
+  <!-- DONE LOADING HIGHLIGHTER JS FILES -->
+   
+  </html>

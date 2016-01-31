@@ -1,0 +1,8 @@
+base
+shiny
+lattice
+MASS
+memisc
+slidify
+devtools
+shinyapps
